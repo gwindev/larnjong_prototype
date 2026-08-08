@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LarnJong</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#232946;
+    --navy-ink:#1A2038;
+    --bg:#F2F2F5;
+    --card:#FFFFFF;
+    --muted:#8E8E93;
+    --line:#E5E5EA;
+    --green-bg:#E3F5EA;
+    --green-fg:#1F9D55;
+    --peach-bg:#FCEFDB;
+    --peach-fg:#A6752E;
+    --red-bg:#FBE2E1;
+    --red-fg:#C0392B;
+    --radius-lg:28px;
+    --radius-md:16px;
+    --radius-sm:12px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Prompt', sans-serif;
+    background:
+      radial-gradient(circle at 20% 10%, #e9e9ee 0%, transparent 40%),
+      var(--bg);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+    color:var(--navy-ink);
+  }
+  .lab-caption{
+    font-size:12px;
+    letter-spacing:.08em;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin-bottom:14px;
+    text-align:center;
+  }
+  .lab-caption b{color:var(--navy);}
+
+  .phone{
+    position:relative;
+    width:375px;
+    max-width:92vw;
+    height:760px;
+    background:var(--card);
+    border-radius:44px;
+    box-shadow:0 30px 60px -20px rgba(26,32,56,.35), 0 0 0 10px #10131f;
+    overflow:hidden;
+  }
+  .notch{
+    position:absolute;
+    top:0; left:50%;
+    transform:translateX(-50%);
+    width:150px; height:26px;
+    background:#10131f;
+    border-radius:0 0 18px 18px;
+    z-index:20;
+  }
+  .statusbar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 26px 4px;
+    font-size:13px; font-weight:600; color:var(--navy-ink);
+  }
+
+  .screen{
+    position:absolute; inset:0;
+    padding:20px 24px 28px;
+    display:flex; flex-direction:column;
+    opacity:0; pointer-events:none;
+    transform:translateX(24px);
+    transition:opacity .32s ease, transform .32s ease;
+  }
+  .screen.active{
+    opacity:1; pointer-events:auto; transform:translateX(0);
+  }
+  .screen-body{
+    flex:1;
+    display:flex; flex-direction:column;
+    padding-top:36px;
+  }
+
+  .dots{
+    display:flex; gap:6px; justify-content:center; margin:10px 0 2px;
+  }
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--line);transition:.25s;}
+  .dot.on{background:var(--navy); width:16px; border-radius:3px;}
+
+  .logo-mark{
+    width:64px; height:64px; border-radius:20px;
+    background:var(--navy);
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 20px;
+  }
+  .logo-mark svg{width:30px;height:30px;}
+
+  h1.title{font-size:22px; font-weight:700; text-align:center; margin:0 0 6px; color:var(--navy-ink);}
+  p.subtitle{font-size:13.5px; color:var(--muted); text-align:center; margin:0 0 28px; line-height:1.5;}
+
+  .grow{flex:1;}
+
+  .btn{
+    display:flex; align-items:center; justify-content:center;
+    width:100%; padding:15px 18px;
+    border-radius:var(--radius-sm);
+    font-family:'Prompt',sans-serif;
+    font-size:15px; font-weight:600;
+    border:none; cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+    margin-bottom:12px;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--navy); color:#fff; box-shadow:0 8px 18px -8px rgba(35,41,70,.55);}
+  .btn-primary:hover{background:var(--navy-ink);}
+  .btn-outline{background:#fff; color:var(--navy); border:1.5px solid var(--navy);}
+  .btn-outline:hover{background:#f6f6f8;}
+  .btn-ghost{background:transparent; color:var(--muted); font-weight:500; font-size:13px; padding:8px; margin-bottom:0;}
+  .btn-ghost:hover{color:var(--navy);}
+
+  .field-label{font-size:13px; color:var(--navy-ink); font-weight:500; margin:0 0 8px;}
+  .toggle-row{display:flex; gap:10px; margin-bottom:16px;}
+  .toggle{
+    flex:1; text-align:center; padding:13px 10px;
+    border-radius:var(--radius-sm); border:1.5px solid var(--line);
+    font-size:14px; font-weight:600; color:var(--muted);
+    cursor:pointer; transition:.15s;
+  }
+  .toggle.sel{border-color:var(--navy); background:#EEF0F7; color:var(--navy-ink);}
+
+  input[type=text], .fake-input{
+    width:100%; padding:14px 16px; margin-bottom:12px;
+    border-radius:var(--radius-sm); border:1.5px solid var(--line);
+    font-family:'Prompt',sans-serif; font-size:14px; color:var(--navy-ink);
+    background:#fff;
+  }
+  input[type=text]::placeholder{color:#B4B4BC;}
+  .row2{display:flex; gap:10px;}
+  .row2 .fake-input{flex:1; color:var(--muted); font-size:13.5px;}
+
+  .icon-circle{
+    width:64px; height:64px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 16px;
+  }
+  .icon-circle svg{width:28px;height:28px;}
+  .icon-circle.ok{background:var(--green-bg);}
+  .icon-circle.ok svg{stroke:var(--green-fg);}
+
+  .ticket{
+    border:2px dashed #B9C0D4;
+    border-radius:var(--radius-md);
+    padding:22px 18px 18px;
+    text-align:center;
+    margin-bottom:20px;
+    background:#FAFBFF;
+  }
+  .ticket .tlabel{font-size:12px; color:var(--muted); margin-bottom:6px;}
+  .ticket .tcode{font-size:38px; font-weight:700; letter-spacing:1px; color:var(--navy-ink); margin-bottom:12px; font-family:'Prompt',sans-serif;}
+  .pill{
+    display:inline-block; padding:7px 14px; border-radius:20px;
+    font-size:12.5px; font-weight:600; margin-bottom:14px;
+  }
+  .pill.peach{background:var(--peach-bg); color:var(--peach-fg);}
+  .pill.red-box, .pill.peach-box{display:block; border-radius:var(--radius-sm); padding:14px 16px; text-align:center; margin-bottom:16px;}
+  .pill.red-box{background:var(--red-bg); color:var(--red-fg);}
+  .pill.peach-box{background:var(--peach-bg); color:var(--peach-fg);}
+  .box-title{font-weight:700; font-size:14.5px; margin-bottom:4px;}
+  .box-sub{font-size:12.5px; opacity:.85; line-height:1.4;}
+  .ticket-divider{border-top:1px dashed var(--line); margin:12px 0; }
+  .ticket-note{font-size:12px; color:var(--muted);}
+
+  .newslot-box{
+    border:1.5px solid #EAD9B4; background:#FFFBF3;
+    border-radius:var(--radius-md); padding:20px; text-align:center; margin-bottom:18px;
+  }
+  .newslot-box .lbl{font-size:12px; color:var(--peach-fg); margin-bottom:6px;}
+  .newslot-box .code{font-size:34px; font-weight:700; color:var(--navy-ink); margin-bottom:8px;}
+  .newslot-box .sub{font-size:12.5px; color:var(--muted);}
+
+  .status-title{text-align:center; font-size:14px; color:var(--navy-ink); font-weight:500; margin-bottom:4px;}
+  .status-code{text-align:center; font-size:40px; font-weight:700; color:var(--navy-ink); margin-bottom:6px;}
+  .status-sub{text-align:center; font-size:13px; color:var(--muted); margin-bottom:22px;}
+  .info-row{
+    display:flex; justify-content:space-between; background:#F5F5F8;
+    border-radius:var(--radius-sm); padding:14px 16px; margin-bottom:12px;
+  }
+  .info-row div{font-size:12.5px;}
+  .info-row .k{color:var(--muted); margin-bottom:3px;}
+  .info-row .v{font-weight:600; color:var(--navy-ink); font-size:14px;}
+  .live-pill{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    background:var(--green-bg); color:var(--green-fg);
+    border-radius:var(--radius-sm); padding:13px; font-size:13.5px; font-weight:600;
+    margin-bottom:16px;
+  }
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green-fg); animation:pulse 1.4s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.3);}}
+
+  .toast{
+    position:absolute; left:24px; right:24px; bottom:100px;
+    background:var(--navy-ink); color:#fff; font-size:13px; font-weight:500;
+    padding:12px 16px; border-radius:12px; text-align:center;
+    opacity:0; transform:translateY(10px); transition:.25s;
+    pointer-events:none; z-index:30;
+  }
+  .toast.show{opacity:1; transform:translateY(0);}
+
+  .homebar{position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:120px; height:5px; background:#D8D8DC; border-radius:3px;}
+
+  /* --- Back button --- */
+  .back-btn{
+    position:absolute; top:58px; left:20px; z-index:15;
+    width:34px; height:34px; border-radius:50%;
+    background:#F0F0F3; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .15s;
+  }
+  .back-btn:hover{background:#E4E4EA;}
+  .back-btn:active{transform:scale(.92);}
+  .back-btn svg{width:17px;height:17px;}
+
+  /* --- Form validation --- */
+  input[type=text].error{border-color:var(--red-fg); background:#FFF7F6;}
+  .field-error{
+    color:var(--red-fg); font-size:11.5px; margin:-6px 0 10px 4px;
+    display:none;
+  }
+  .field-error.show{display:block;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-6px);} 40%{transform:translateX(6px);}
+    60%{transform:translateX(-4px);} 80%{transform:translateX(4px);}
+  }
+  .shake{animation:shake .35s;}
+
+  /* --- Empty state --- */
+  .empty-state{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding-bottom:40px;
+    pointer-events:none;
+  }
+  .empty-state .btn{pointer-events:auto;}
+  .empty-state .e-icon{
+    width:72px; height:72px; border-radius:50%;
+    border:2px dashed var(--line);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:18px;
+  }
+  .empty-state .e-icon svg{width:30px;height:30px; stroke:#B4B4BC;}
+  .empty-state h2{font-size:16px; font-weight:600; margin:0 0 6px; color:var(--navy-ink);}
+  .empty-state p{font-size:13px; color:var(--muted); margin:0 0 22px; line-height:1.5;}
+
+  /* --- Loading overlay --- */
+  .loading-overlay{
+    position:absolute; inset:0; background:rgba(255,255,255,.92);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .2s; z-index:25; border-radius:44px;
+  }
+  .loading-overlay.show{opacity:1; pointer-events:auto;}
+  .spinner{
+    width:34px; height:34px; border-radius:50%;
+    border:3px solid #E5E5EA; border-top-color:var(--navy);
+    animation:spin .7s linear infinite; margin-bottom:14px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-overlay span{font-size:13px; color:var(--muted); font-weight:500;}
+</style>
+</head>
+<body>
+
+<div class="lab-caption">🅿️ <b>LarnJong · จองที่จอดรถ</b> — Interactive Prototype (คลิกได้จริงทุกปุ่ม)</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="statusbar"><span>9:12</span><span>●●●●  📶  🔋</span></div>
+
+  <!-- SCREEN 1: START -->
+  <div class="screen active" data-screen="1">
+    <div class="dots" id="dots1"></div>
+    <div class="screen-body" style="justify-content:center;">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M7 7V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/><text x="12" y="16" font-size="8" text-anchor="middle" fill="white" stroke="none" font-family="Prompt">P</text></svg>
+      </div>
+      <h1 class="title">จองที่จอดรถ</h1>
+      <p class="subtitle">จองที่จอดล่วงหน้า ไม่ต้องวนหา</p>
+    </div>
+    <button class="btn btn-primary" onclick="go(2)">จองที่จอดล่วงหน้า</button>
+    <button class="btn btn-outline" onclick="viewTicket()">ดูบัตรจองของฉัน</button>
+  </div>
+
+  <!-- SCREEN 2: BOOKING FORM -->
+  <div class="screen" data-screen="2">
+    <button class="back-btn" onclick="goBack()" aria-label="ย้อนกลับ"><svg viewBox="0 0 24 24" fill="none" stroke="#232946" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="screen-body">
+      <h1 class="title" style="margin-bottom:22px;">จองที่จอด</h1>
+      <div class="field-label">เลือกประเภทยานพาหนะ</div>
+      <div class="toggle-row">
+        <div class="toggle sel" id="veh-moto" onclick="selectVehicle('moto')">มอเตอร์ไซค์</div>
+        <div class="toggle" id="veh-car" onclick="selectVehicle('car')">รถยนต์</div>
+      </div>
+      <input type="text" class="fake-input" placeholder="ชื่อ-นามสกุล" id="inp-name">
+      <div class="field-error" id="err-name">กรุณากรอกชื่อ-นามสกุล</div>
+      <input type="text" class="fake-input" placeholder="เลขทะเบียนรถ" id="inp-plate">
+      <div class="field-error" id="err-plate">กรุณากรอกเลขทะเบียนรถ</div>
+      <div class="row2">
+        <div class="fake-input">26 ก.ค. 2569</div>
+        <div class="fake-input">07:30 น.</div>
+      </div>
+      <div class="grow"></div>
+    </div>
+    <button class="btn btn-primary" onclick="confirmBooking()">ยืนยันการจอง</button>
+    <div class="loading-overlay" id="booking-loader"><div class="spinner"></div><span>กำลังจัดสรรที่จอด…</span></div>
+  </div>
+
+  <!-- SCREEN 3: BOOKING SUCCESS / EMPTY STATE -->
+  <div class="screen" data-screen="3">
+    <button class="back-btn" onclick="goBack()" aria-label="ย้อนกลับ"><svg viewBox="0 0 24 24" fill="none" stroke="#232946" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+
+    <div class="screen-body" id="ticket-view" style="display:none;">
+      <div class="icon-circle ok"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+      <h1 class="title" style="color:var(--green-fg); margin-bottom:22px;">จองสำเร็จ</h1>
+      <div class="ticket">
+        <div class="tlabel">บัตรจองเข้าจอด</div>
+        <div class="tcode" id="ticket-code">A-108</div>
+        <div class="pill peach" id="ticket-zone">โซนรถจักรยานยนต์ · ใช้ได้ถึง 08:30 น.</div>
+        <div class="ticket-divider"></div>
+        <div class="ticket-note">แสดงบัตรจองนี้ต่อเจ้าหน้าที่หรือระบบทางเข้า</div>
+      </div>
+      <div class="grow"></div>
+      <button class="btn btn-ghost" style="margin-bottom:14px;" onclick="go(4)">⚠ จำลอง: ช่องจอดไม่พร้อมใช้งาน</button>
+    </div>
+
+    <div class="empty-state" id="empty-view">
+      <div class="e-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2" stroke-dasharray="3 3"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+      <h2>ยังไม่มีบัตรจองที่ใช้งานอยู่</h2>
+      <p>จองที่จอดล่วงหน้า แล้วบัตรจองของคุณ<br>จะแสดงที่นี่</p>
+      <button class="btn btn-primary" style="width:auto; padding:14px 28px;" onclick="go(2)">จองที่จอดเลย</button>
+    </div>
+
+    <button class="btn btn-outline" id="ticket-view-cta" style="display:none;" onclick="go(5)">ดูสถานะการจอด</button>
+  </div>
+
+  <!-- SCREEN 4: SLOT CHANGE -->
+  <div class="screen" data-screen="4">
+    <button class="back-btn" onclick="goBack()" aria-label="ย้อนกลับ"><svg viewBox="0 0 24 24" fill="none" stroke="#232946" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="screen-body" style="padding-top:36px;">
+      <div class="pill red-box">
+        <div class="box-title">ช่อง A-108 ไม่พร้อมใช้งาน</div>
+        <div class="box-sub">มีรถจอดผิดช่องอยู่ก่อน ระบบจัดที่จอดใหม่ให้แล้ว</div>
+      </div>
+      <div class="newslot-box">
+        <div class="lbl">ช่องใหม่</div>
+        <div class="code">B-14</div>
+        <div class="sub" id="newslot-zone">โซนรถจักรยานยนต์ · ห่างจากช่องเดิม 15 เมตร</div>
+      </div>
+      <div class="grow"></div>
+    </div>
+    <button class="btn btn-primary" onclick="useNewSlot()">ใช้ช่อง B-14</button>
+    <button class="btn btn-outline" onclick="toast('กำลังเชื่อมต่อเจ้าหน้าที่รักษาความปลอดภัย…')">ติดต่อเจ้าหน้าที่</button>
+  </div>
+
+  <!-- SCREEN 5: STATUS -->
+  <div class="screen" data-screen="5">
+    <button class="back-btn" onclick="goBack()" aria-label="ย้อนกลับ"><svg viewBox="0 0 24 24" fill="none" stroke="#232946" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="screen-body" style="padding-top:36px;">
+      <div class="status-title">สถานะการจอด</div>
+      <div class="status-code" id="status-code">A-108</div>
+      <div class="status-sub" id="status-zone">โซนรถจักรยานยนต์ · ใกล้ทางเข้าตึกเรียน</div>
+      <div class="info-row">
+        <div><div class="k">เริ่มจอด</div><div class="v">07:32</div></div>
+        <div style="text-align:right"><div class="k">สูงสุด</div><div class="v">8 ชม.</div></div>
+      </div>
+      <div class="live-pill"><span class="live-dot"></span> กำลังจอดอยู่ · เหลือเวลา 3 ชม. 40 นาที</div>
+      <div class="grow"></div>
+      <button class="btn btn-outline" id="alarm-btn" onclick="toggleAlarm()">ตั้งเตือนก่อนครบเวลา</button>
+    </div>
+    <button class="btn btn-primary" onclick="go(6)">คืนที่จอด</button>
+  </div>
+
+  <!-- SCREEN 6: RETURN SUCCESS -->
+  <div class="screen" data-screen="6">
+    <div class="screen-body">
+      <div class="icon-circle ok"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+      <h1 class="title" style="color:var(--green-fg);">คืนที่จอดสำเร็จ</h1>
+      <p class="subtitle" id="return-sub" style="margin-bottom:20px;">คืนช่อง A-108 แล้ว</p>
+      <div class="info-row">
+        <div><div class="k">ออกเวลา</div><div class="v">16:45</div></div>
+        <div style="text-align:right"><div class="k">จอดรวม</div><div class="v">9 ชม. 13 นาที</div></div>
+      </div>
+      <div class="pill peach-box" style="margin-top:12px;">ขอบคุณที่คืนพื้นที่ให้ผู้ใช้งานคนอื่น</div>
+      <div class="grow"></div>
+    </div>
+    <button class="btn btn-primary" onclick="restart()">กลับหน้าแรก</button>
+    <button class="btn btn-outline" onclick="toast('แชร์ตำแหน่งพื้นที่ว่างแล้ว ✓')">แชร์ตำแหน่งพื้นที่ว่าง</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="homebar"></div>
+</div>
+
+<script>
+let vehicle = 'moto';
+let slot = 'A-108';
+let alarmOn = false;
+let hasBooking = false;
+let navHistory = [1];
+
+// Back-target map: where "back" goes to from each screen
+const backMap = {2:1, 3:1, 4:3, 5:1};
+
+function go(n, opts={}){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`.screen[data-screen="${n}"]`).classList.add('active');
+  if(!opts.isBack) navHistory.push(n);
+}
+
+function goBack(){
+  const current = navHistory[navHistory.length-1];
+  const target = backMap[current] ?? 1;
+  navHistory.pop();
+  go(target, {isBack:true});
+  if(target === 3) refreshTicketView();
+}
+
+function selectVehicle(v){
+  vehicle = v;
+  document.getElementById('veh-moto').classList.toggle('sel', v==='moto');
+  document.getElementById('veh-car').classList.toggle('sel', v==='car');
+}
+
+function zoneLabel(){
+  return vehicle === 'moto' ? 'โซนรถจักรยานยนต์' : 'โซนรถยนต์';
+}
+
+function clearFieldError(inputId, errorId){
+  document.getElementById(inputId).classList.remove('error');
+  document.getElementById(errorId).classList.remove('show');
+}
+document.getElementById('inp-name').addEventListener('input', ()=>clearFieldError('inp-name','err-name'));
+document.getElementById('inp-plate').addEventListener('input', ()=>clearFieldError('inp-plate','err-plate'));
+
+function confirmBooking(){
+  const nameEl = document.getElementById('inp-name');
+  const plateEl = document.getElementById('inp-plate');
+  let valid = true;
+
+  [[nameEl,'err-name'], [plateEl,'err-plate']].forEach(([el, errId])=>{
+    if(el.value.trim()===''){
+      el.classList.add('error','shake');
+      document.getElementById(errId).classList.add('show');
+      setTimeout(()=>el.classList.remove('shake'), 350);
+      valid = false;
+    }
+  });
+  if(!valid){ nameEl.value.trim()==='' ? nameEl.focus() : plateEl.focus(); return; }
+
+  // show brief loading state — visibility of system status
+  const loader = document.getElementById('booking-loader');
+  loader.classList.add('show');
+  setTimeout(()=>{
+    loader.classList.remove('show');
+    slot = 'A-108';
+    hasBooking = true;
+    document.getElementById('ticket-code').textContent = slot;
+    document.getElementById('ticket-zone').textContent = `${zoneLabel()} · ใช้ได้ถึง 08:30 น.`;
+    go(3);
+    refreshTicketView();
+  }, 700);
+}
+
+function refreshTicketView(){
+  document.getElementById('ticket-view').style.display = hasBooking ? 'flex' : 'none';
+  document.getElementById('empty-view').style.display = hasBooking ? 'none' : 'flex';
+  document.getElementById('ticket-view-cta').style.display = hasBooking ? 'flex' : 'none';
+}
+
+function viewTicket(){
+  if(hasBooking){
+    document.getElementById('ticket-code').textContent = slot;
+    document.getElementById('ticket-zone').textContent = `${zoneLabel()} · ใช้ได้ถึง 08:30 น.`;
+  }
+  go(3);
+  refreshTicketView();
+}
+
+function useNewSlot(){
+  slot = 'B-14';
+  document.getElementById('status-code').textContent = slot;
+  document.getElementById('status-zone').textContent = `${zoneLabel()} · ห่างจากช่องเดิม 15 เมตร`;
+  go(5);
+}
+
+function toggleAlarm(){
+  alarmOn = !alarmOn;
+  const btn = document.getElementById('alarm-btn');
+  btn.textContent = alarmOn ? 'ยกเลิกการเตือน' : 'ตั้งเตือนก่อนครบเวลา';
+  toast(alarmOn ? 'ตั้งเตือนก่อนครบเวลาแล้ว ✓' : 'ยกเลิกการเตือนแล้ว');
+}
+
+function restart(){
+  hasBooking = false;
+  slot = 'A-108';
+  navHistory = [1];
+  document.getElementById('status-code').textContent = 'A-108';
+  document.getElementById('status-zone').textContent = 'โซนรถจักรยานยนต์ · ใกล้ทางเข้าตึกเรียน';
+  document.getElementById('return-sub').textContent = 'คืนช่อง A-108 แล้ว';
+  document.getElementById('inp-name').value = '';
+  document.getElementById('inp-plate').value = '';
+  go(1, {isBack:true});
+}
+
+// keep return screen text in sync with whichever slot was used
+document.querySelector('.screen[data-screen="6"]').addEventListener('transitionstart', ()=>{
+  document.getElementById('return-sub').textContent = `คืนช่อง ${slot} แล้ว`;
+});
+
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
