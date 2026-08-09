@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LarnJong</title>
+<title>จองที่จอดรถ — Interactive Prototype</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -137,6 +137,14 @@
     cursor:pointer; transition:.15s;
   }
   .toggle.sel{border-color:var(--navy); background:#EEF0F7; color:var(--navy-ink);}
+  .chip-row{display:flex; gap:8px; margin-bottom:16px;}
+  .chip{
+    flex:1; text-align:center; padding:10px 6px;
+    border-radius:var(--radius-sm); border:1.5px solid var(--line);
+    font-size:12.5px; font-weight:600; color:var(--muted);
+    cursor:pointer; transition:.15s;
+  }
+  .chip.sel{border-color:var(--peach-fg); background:#FCEFDB; color:var(--peach-fg);}
 
   input[type=text], .fake-input{
     width:100%; padding:14px 16px; margin-bottom:12px;
@@ -164,7 +172,19 @@
     text-align:center;
     margin-bottom:20px;
     background:#FAFBFF;
+    position:relative;
   }
+  .ticket-qr{
+    position:absolute; top:14px; right:14px;
+    width:56px; height:56px; border-radius:8px;
+    background:#fff; padding:3px; box-shadow:0 2px 6px rgba(26,32,56,.12);
+  }
+  .ticket-plate-row{
+    display:flex; justify-content:space-between; align-items:center;
+    background:#F0F2F8; border-radius:10px; padding:9px 14px; margin-bottom:14px;
+  }
+  .ticket-plate-row .k{font-size:11.5px; color:var(--muted);}
+  .ticket-plate-row .v{font-size:13.5px; font-weight:700; color:var(--navy-ink); letter-spacing:.3px;}
   .ticket .tlabel{font-size:12px; color:var(--muted); margin-bottom:6px;}
   .ticket .tcode{font-size:38px; font-weight:700; letter-spacing:1px; color:var(--navy-ink); margin-bottom:12px; font-family:'Prompt',sans-serif;}
   .pill{
@@ -250,7 +270,7 @@
     text-align:center; padding-bottom:40px;
     pointer-events:none;
   }
-  .empty-state .btn{pointer-events:auto;}
+  .screen.active .empty-state .btn{pointer-events:auto;}
   .empty-state .e-icon{
     width:72px; height:72px; border-radius:50%;
     border:2px dashed var(--line);
@@ -317,6 +337,12 @@
         <div class="fake-input">26 ก.ค. 2569</div>
         <div class="fake-input">07:30 น.</div>
       </div>
+      <div class="field-label">ระยะเวลาที่คาดว่าจะจอด</div>
+      <div class="chip-row">
+        <div class="chip" id="dur-2" onclick="selectDuration(2)">2 ชม.</div>
+        <div class="chip" id="dur-4" onclick="selectDuration(4)">4 ชม.</div>
+        <div class="chip sel" id="dur-8" onclick="selectDuration(8)">8 ชม. (เต็มวัน)</div>
+      </div>
       <div class="grow"></div>
     </div>
     <button class="btn btn-primary" onclick="confirmBooking()">ยืนยันการจอง</button>
@@ -331,11 +357,16 @@
       <div class="icon-circle ok"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
       <h1 class="title" style="color:var(--green-fg); margin-bottom:22px;">จองสำเร็จ</h1>
       <div class="ticket">
+        <img class="ticket-qr" id="ticket-qr" alt="QR สำหรับสแกนที่ทางเข้า">
         <div class="tlabel">บัตรจองเข้าจอด</div>
         <div class="tcode" id="ticket-code">A-108</div>
         <div class="pill peach" id="ticket-zone">โซนรถจักรยานยนต์ · ใช้ได้ถึง 08:30 น.</div>
+        <div class="ticket-plate-row">
+          <span class="k">ป้ายทะเบียน</span>
+          <span class="v" id="ticket-plate">กก 1234</span>
+        </div>
         <div class="ticket-divider"></div>
-        <div class="ticket-note">แสดงบัตรจองนี้ต่อเจ้าหน้าที่หรือระบบทางเข้า</div>
+        <div class="ticket-note">แสดง QR นี้ต่อเจ้าหน้าที่หรือสแกนที่ระบบทางเข้า</div>
       </div>
       <div class="grow"></div>
       <button class="btn btn-ghost" style="margin-bottom:14px;" onclick="go(4)">⚠ จำลอง: ช่องจอดไม่พร้อมใช้งาน</button>
@@ -348,7 +379,7 @@
       <button class="btn btn-primary" style="width:auto; padding:14px 28px;" onclick="go(2)">จองที่จอดเลย</button>
     </div>
 
-    <button class="btn btn-outline" id="ticket-view-cta" style="display:none;" onclick="go(5)">ดูสถานะการจอด</button>
+    <button class="btn btn-outline" id="ticket-view-cta" style="display:none;" onclick="refreshStatusPanel(); go(5);">ดูสถานะการจอด</button>
   </div>
 
   <!-- SCREEN 4: SLOT CHANGE -->
@@ -379,7 +410,11 @@
       <div class="status-sub" id="status-zone">โซนรถจักรยานยนต์ · ใกล้ทางเข้าตึกเรียน</div>
       <div class="info-row">
         <div><div class="k">เริ่มจอด</div><div class="v">07:32</div></div>
-        <div style="text-align:right"><div class="k">สูงสุด</div><div class="v">8 ชม.</div></div>
+        <div style="text-align:right"><div class="k">สูงสุด</div><div class="v" id="status-maxdur">8 ชม.</div></div>
+      </div>
+      <div class="ticket-plate-row">
+        <span class="k">ป้ายทะเบียน</span>
+        <span class="v" id="status-plate">กก 1234</span>
       </div>
       <div class="live-pill"><span class="live-dot"></span> กำลังจอดอยู่ · เหลือเวลา 3 ชม. 40 นาที</div>
       <div class="grow"></div>
@@ -415,6 +450,12 @@ let slot = 'A-108';
 let alarmOn = false;
 let hasBooking = false;
 let navHistory = [1];
+let plateNumber = '';
+let duration = 8;
+const QR_DATA = {
+  'A-108': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ4AAAEOCAIAAAD3027yAAAEyElEQVR4nO3dvW0lNxhAUctwKRu5EdfsRhy5l9nYCd8FKC7J8TmpIGnezwWDb8j5ep7nN+CT33dfANxBKpBIBRKpQCIVSKQCiVQgkQokUoHkj/GPf/z516+5jl/m33/+Hvx03eud+b/j3x2beUW73qtdxq/XqgKJVCCRCiRSgUQqkEgFEqlAIhVIpALJh2n92MwUeZ118+kZM1d148T9fd8NqwokUoFEKpBIBRKpQCIVSKQCiVQgkQokU9P6sRsnwevm4uv21o9/98wd8Dd+N6wqkEgFEqlAIhVIpAKJVCCRCiRSgUQqkCyc1t9o3U70XVPzM/e438iqAolUIJEKJFKBRCqQSAUSqUAiFUikAolp/bdZN49fd5eAWX5nVYFEKpBIBRKpQCIVSKQCiVQgkQokUoFk4bT+xknwjSe0j515Ev6N3w2rCiRSgUQqkEgFEqlAIhVIpAKJVCCRCiRT0/ozJ8Hr7Donf9cz72dm6u/7blhVIJEKJFKBRCqQSAUSqUAiFUikAolUIPl6nmf3NVzjzFPl33cewJmsKpBIBRKpQCIVSKQCiVQgkQokUoFEKpB82Ft/5r7tsZnp9ft2k687D2Bs1679dd9JqwokUoFEKpBIBRKpQCIVSKQCiVQgkQokH6b1u2bqZ57ffuYdBjPO3D1/5n0PVhVIpAKJVCCRCiRSgUQqkEgFEqlAIhVIpp5bP/a+k+FvnKn/387JX3e/hVUFEqlAIhVIpAKJVCCRCiRSgUQqkEgFkoXPrX/fnPjMPd/ejc60HpaTCiRSgUQqkEgFEqlAIhVIpAKJVCCZem792JlPTF9n1+sd23XPxI3fnDGrCiRSgUQqkEgFEqlAIhVIpAKJVCCRCiRTe+t3TWR3PT9+3TW/7/XOOPP/WlUgkQokUoFEKpBIBRKpQCIVSKQCiVQg+TCtXzePX+fGE/hvPFV+xpn3H4xZVSCRCiRSgUQqkEgFEqlAIhVIpAKJVCD5cBL+zHRz3dx011+ecebJ8O97r2b+sr318A2kAolUIJEKJFKBRCqQSAUSqUAiFUi27a2/8enyN54WcOanMGPXJ2hVgUQqkEgFEqlAIhVIpAKJVCCRCiRSgWTqufXvc+bJ/2fe2TDjzNMR7K2HbyAVSKQCiVQgkQokUoFEKpBIBRKpQPLhJPwb916PzUyCd51If+N59Wdes731sJxUIJEKJFKBRCqQSAUSqUAiFUikAsmHaf3YrpPhx3btj79xJ/qMMz/9defkW1UgkQokUoFEKpBIBRKpQCIVSKQCiVQgmZrWj525Q3rGzKz3xlMKzjyBf3xVnlsPm0kFEqlAIhVIpAKJVCCRCiRSgUQqkCyc1r/Pun3b62bMZ+74n5m4j617vVYVSKQCiVQgkQokUoFEKpBIBRKpQCIVSEzr/+PMHfBn7nE/8/+um/RbVSCRCiRSgUQqkEgFEqlAIhVIpAKJVCBZOK0/87nmY+vmxOumyOtm+bvuEpjZtb/uvbKqQCIVSKQCiVQgkQokUoFEKpBIBRKpQDI1rT9zJ/qMM89gX/c+7zrbf2zX3QljVhVIpAKJVCCRCiRSgUQqkEgFEqlAIhVIvp7n2X0NcAGrCiRSgUQqkEgFEqlAIhVIpAKJVCCRCiQ/AW24cASe6WFBAAAAAElFTkSuQmCC',
+  'B-14': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOYAAADmCAIAAABOCG7sAAADqUlEQVR4nO3dsXHcMBBAUZ/HpThyI67ZjThyL3SiGKcbCAI+9V6qkcg7/UGys+Tjuq5v0PF99w3AayRLjGSJkSwxkiVGssRIlhjJEiNZYn6Mf/zz1+/PuY9P8+/vn0V/efxdja+77neLxp/XKUuMZImRLDGSJUayxEiWGMkSI1liJEvMk+nX2LpJ0oziNGjdN3m//5FTlhjJEiNZYiRLjGSJkSwxkiVGssRIlpip6dfYuinUrv2tdWZ2v9Zdd8a6e3bKEiNZYiRLjGSJkSwxkiVGssRIlhjJEiNZYiRLjGSJkSwxkiVGssRIlhjJEiNZYiRLjGSJkSwxkiVGssRIlhjJEiNZYiRLjGSJkSwxC598eOYbp2b4RCdwyhIjWWIkS4xkiZEsMZIlRrLESJYYyRIzNf3a9ZasM+16d9fY/f5HTlliJEuMZImRLDGSJUayxEiWGMkSI1liHtd17b6Hg8zMiop7VEVOWWIkS4xkiZEsMZIlRrLESJYYyRIjWWKe7H7N7DOduXU0vuddn+irfc8znLLESJYYyRIjWWIkS4xkiZEsMZIlRrLEPNn9OvNpfmda913tmo2tu+eZ6zpliZEsMZIlRrLESJYYyRIjWWIkS4xkiXmy+7VuvrVrY2lmVnTmNOh+9zzmlCVGssRIlhjJEiNZYiRLjGSJkSwxkiVmavdrxpkTnV17VPd7eqHdL3gjWWIkS4xkiZEsMZIlRrLESJYYyRKzcPfrzFmRKdRH/eUxu1/wRrLESJYYyRIjWWIkS4xkiZEsMZIl5sn0a8auyco6u6575ru7ds0RnbLESJYYyRIjWWIkS4xkiZEsMZIlRrLEbHvy4S673mTmuh/FKUuMZImRLDGSJUayxEiWGMkSI1liJEvM1O7Xrl2osZmJ3bpp3643qI0Vt8qcssRIlhjJEiNZYiRLjGSJkSwxkiVGssQsfPLhmfOedYpv55ph9wveRbLESJYYyRIjWWIkS4xkiZEsMZIlZuH066uZmQbtmpwV36DmlCVGssRIlhjJEiNZYiRLjGSJkSwxkiXG9OsFZ+5gzdj15MMZTlliJEuMZImRLDGSJUayxEiWGMkSI1liFk6/irOi+z29cOaudr0FzXu/uBXJEiNZYiRLjGSJkSwxkiVGssRIlpip6de66cguu3ahzpycrbuuJx/yhUiWGMkSI1liJEuMZImRLDGSJUayxDyu69p9D/ACpywxkiVGssRIlhjJEiNZYiRLjGSJkSwx/wEc/fIB25mFGQAAAABJRU5ErkJggg==',
+};
 
 // Back-target map: where "back" goes to from each screen
 const backMap = {2:1, 3:1, 4:3, 5:1};
@@ -437,6 +478,12 @@ function selectVehicle(v){
   vehicle = v;
   document.getElementById('veh-moto').classList.toggle('sel', v==='moto');
   document.getElementById('veh-car').classList.toggle('sel', v==='car');
+}
+
+function selectDuration(h){
+  duration = h;
+  ['dur-2','dur-4','dur-8'].forEach(id=>document.getElementById(id).classList.remove('sel'));
+  document.getElementById('dur-' + h).classList.add('sel');
 }
 
 function zoneLabel(){
@@ -472,8 +519,11 @@ function confirmBooking(){
     loader.classList.remove('show');
     slot = 'A-108';
     hasBooking = true;
+    plateNumber = plateEl.value.trim();
     document.getElementById('ticket-code').textContent = slot;
     document.getElementById('ticket-zone').textContent = `${zoneLabel()} · ใช้ได้ถึง 08:30 น.`;
+    document.getElementById('ticket-plate').textContent = plateNumber;
+    document.getElementById('ticket-qr').src = QR_DATA[slot];
     go(3);
     refreshTicketView();
   }, 700);
@@ -489,6 +539,8 @@ function viewTicket(){
   if(hasBooking){
     document.getElementById('ticket-code').textContent = slot;
     document.getElementById('ticket-zone').textContent = `${zoneLabel()} · ใช้ได้ถึง 08:30 น.`;
+    document.getElementById('ticket-plate').textContent = plateNumber;
+    document.getElementById('ticket-qr').src = QR_DATA[slot];
   }
   go(3);
   refreshTicketView();
@@ -498,6 +550,7 @@ function useNewSlot(){
   slot = 'B-14';
   document.getElementById('status-code').textContent = slot;
   document.getElementById('status-zone').textContent = `${zoneLabel()} · ห่างจากช่องเดิม 15 เมตร`;
+  refreshStatusPanel();
   go(5);
 }
 
@@ -508,9 +561,18 @@ function toggleAlarm(){
   toast(alarmOn ? 'ตั้งเตือนก่อนครบเวลาแล้ว ✓' : 'ยกเลิกการเตือนแล้ว');
 }
 
+function refreshStatusPanel(){
+  document.getElementById('status-plate').textContent = plateNumber || '\u0e01\u0e01 1234';
+  document.getElementById('status-maxdur').textContent = duration + ' \u0e0a\u0e21.' + (duration===8 ? ' (\u0e40\u0e15\u0e47\u0e21\u0e27\u0e31\u0e19)' : '');
+}
+
 function restart(){
   hasBooking = false;
   slot = 'A-108';
+  plateNumber = '';
+  duration = 8;
+  ['dur-2','dur-4','dur-8'].forEach(id=>document.getElementById(id).classList.remove('sel'));
+  document.getElementById('dur-8').classList.add('sel');
   navHistory = [1];
   document.getElementById('status-code').textContent = 'A-108';
   document.getElementById('status-zone').textContent = 'โซนรถจักรยานยนต์ · ใกล้ทางเข้าตึกเรียน';
